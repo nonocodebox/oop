@@ -1,0 +1,247 @@
+See ex4.pdf
+
+================================================================
+
+						File Description
+================================================================
+
+	In this program we implemented a Simplified Java Compiler.
+	The compiler checks whether a given s-java file is legal (in terms of syntax AND logic), and exits the program
+	with the relevant exit value (0 = a legal code, 1 = an illegal code, and 2 = in case of IO errors).
+
+	If an error was found in the given code, an exception, containing a relevant error message, is thrown.
+
+	================================================================
+
+		List of submitted files (divided into packages)
+	================================================================
+
+	1) main
+	----------------------------------------------------------------------------------------------------------
+        (*) Sjavac.java					-	The program's main class.
+        									Sends a LinkedList of the code lines to the parser.
+        (*) Parser.java					-	Parser class for parsing s-java file
+        (*) CodeException.java			-	Represents a general exception in Sjava file.
+
+	2) variable
+	----------------------------------------------------------------------------------------------------------
+        (*) Variable.java				-	A class that represents a variable in Sjava
+        (*) VariableFactory.java		-	A factory class for parsing variable declarations and assignments.
+        (*) VariableException.java		-	Represents a variable parsing exception
+
+ 	3) method
+	----------------------------------------------------------------------------------------------------------
+
+		(*) Method.java					-	Represents the a method within Sjava file.
+											Represent the method but as a function, not as a Scope.
+		(*) MethodFactory.java			-	Used to create method objects.
+											Also used for queries about methods.
+        (*) MethodException.java		-	Represent a problem with method declaration or method call.
+
+	4) scope
+	----------------------------------------------------------------------------------------------------------
+
+		(*) Scope.java					-	An abstract class, defines the properties of a scope.
+        (*) LinkedScope.java			-	Extends Scope and adds to it the linkage aspect of the Scopes.
+        (*) ScopeFactory.java			-	Used to create Scope objects and for queries about Scopes.
+        (*) MethodScopeFactory.java		-	Called by ScopeFactory.
+        									Used to create Scopes objects represent methods.
+        (*) ConditionalScopeFactory.java-	Called by ScopeFactory.
+        									Used to create Scopes objects represent if/while.
+        (*) ScopeException.java			-	Represent a problem with the Sjava Scope
+		(*) MethodScopeException.java	-	Represent a problem with the method Scope (not the method itself)
+		(*) ConditionalScopeException.ja-	Represent a problem with the condition of the conditional Scope
+
+	5) toolbox
+	----------------------------------------------------------------------------------------------------------
+		(*) MethodRegex.java			-	A class containing regular expressions used for method parsing.
+		(*) ConditionalRegex.java		-	A class containing regular expressions used for conditional scopes
+											parsing.
+		(*) VariableRegex.java			-	A class containing regular expressions used for variable parsing.
+		(*) NumberedLine.java			-	Represents a line of code with its line number.
+
+	6) General files
+	----------------------------------------------------------------------------------------------------------
+   		(*) README.txt					-	This file.
+
+================================================================
+
+							Design
+================================================================
+
+	The main package contains the Sjavac class which runs the program. It converts the file to a readble form and
+	send it to the parser.
+	The parser collect all the Methods embedded within the Sjava file, using the MethodFactory class. This methods
+	are a referred as functions at this time, not as scopes. They are saved so we can call them later.
+	The Parser creates the root Scpoe, which represent the whole Sjava program.
+	Then, the Parser starts passing over the file. If encaunters a method, it create it as a Scope and adds it to
+	the root Scope's children. At this iteration it adds all the root Scope's variables (which are the Sjava's
+	members).
+	The Parser iterates the file again, this time it ignores the root Scope's lines and refers to the method
+	Scopes. During that, if encounters a conditional (if/else) Scope, it creates it (Using ScopeFactory) as a
+	child Scope to the current Method Scope.
+	Whenever the Parser encounters a Scope start or a Scope end, it goes down or up the Scope "tree",
+	respectively.
+	In the Scopes, when the Parser encounters a Variable declaration or initialization it sends the line to the
+	VariableFactory, and puts the variable given by it, within the current Scope.
+	More operation described in the Sjavac file are parsed in help of the relevant factories. (like Variable
+	assignment - that parsed in the VariableFactory, or MethodCall - that parsed in the MethodFactory, etc...)
+	These operations require data verification (with the Scopes variables or Sjava Methods), which are saved for
+	this use.
+	A failure in one of those operations causes an exception, that is thrown upwards to the main method, which
+	catches it.
+	If no such failure happened, the Parser stops its run when it reaches the last line of the Sjava file. Of
+	course, it verifies that all the scopes are closed and it points on the Scope tree root again. Then it returns.
+
+
+	General Notes:
+	--------------------------------
+	(-) The exceptions:
+		We created a CodeException class that represent a Sjava code failure.
+		Also, we created other exceptions extends from it to allow a better understanding of the failure, to help
+		us to spot it and debug it.
+
+	(-) Regex sharing:
+		Our program uses the Regular Expressions. Those expressions defines methods, variables, etc...
+		We decided to line up and share all the Regex in one package, that will be available to use for all
+		classes, to minimize the code repetition.
+
+
+================================================================
+
+					Implementation Issues
+================================================================
+
+	We want to address two implementation decisions we took which we believe were not trivial.
+
+	(1) Scope and LinkedScope:
+		----------------------------------------------------------------------------
+		At the beginning, we started to write Scope class and thought we would use a Tree data structure to hold
+		the scopes. During the work, we got to understand that it's a little more complicated than we thought.
+		Still we didn't want to add new properties to Scope class, because it would have been messy. So we decided
+		o make Scope as an abstract class, and create with it a LinkedScope class, that extends Scope and has all
+		the properties required to linkage between the Scopes.
+
+
+	(2) Methods:
+		----------------------------------------------------------------------------
+		We decided to separate conceptually between Method as a function and method as a Scope.
+		This is because method can call to one another, and we didn't want that such a call would be confused with
+		the parsing of the method's Scope.
+		Also, collecting and saving the Methods as functions, before the Scopes parsing, allowed to call to a
+		method before its Scope was parsed.
+		That's why we decided so.
+
+================================================================
+
+					Answers to Questions
+================================================================
+
+
+	6.1 Error handling
+	===========================
+		1.	How did you handle s-java code errors in this exercise, and why did you chose to do so?
+			----------------------------------------------------------------------------------------
+
+			Non of our classes, except Sjavac class, handles exception, only throw them.
+			Handling is performed only in Sjava, as described bellow.
+
+			We defined these exceptions, in this hierarchy:
+			CodeException
+				ParserException
+				VariableException
+				MethodException
+				ScopeException
+					MethodScopeException
+					ConditionalScopeException
+
+			How did we use them?
+
+			(*) Parser.java:
+			# Throw ParserException under these circumstances:
+			Unknown line, Unclosed scope, Too many scopes closed
+
+			(*) Method package:
+			# Throw MethodException under these circumstances:
+			Call is not legal - general problem in method call, A call to an unknown method, Method is defined
+			within a scope, 2 methods with the same name, Method declaration error
+
+			(*) Scope package:
+			# Throw ScopeException under these circumstances:
+			Scope has 2 variables with the same name, Block not closed, Unidentified scope type
+			# Throw ConditionalScopeException under these circumstances:
+			Illegal condition, No conditionals allowed in root scope, Illegal condition, Reference to a
+			non-existing variable,Reference to a non-initialized variable, Reference to a non-boolean and
+			non-number variable
+			# Throw MethodScopeException under these circumstances:
+			Method with no return phrase, No methods allowed outside the root scope
+
+
+			(*) Variable package:
+			# Throw VariableException under these circumstances:
+			Problem with assignment variable, Problem with initialization, Uninitialized final variable
+
+			(*) And finally, Sjavac.java handles the exceptions:
+			# Catches IOException caused by the file handling - print 2.
+			# Catches all the exceptions thrown by the classes mentioned above - print 1.
+			----------------------------------------------------------------------------------------
+
+	6.2 Object Oriented Design
+		===========================
+		1.	How would you modify your code to add new types of variables (e.g., short)?
+			----------------------------------------------------------------------------------------
+			To add new types of variables, we would add a new type to the TypeVariable enum
+			(for example TypeVariable.SHORT), add that type's value regular expression to VariableRegex.java
+			(for example SHORT_VALUE) and the related strings (regexShort, regexNameShort and regexAssignShort),
+			add the respective patterns to the VariableFactory class (patterns, patternsName and patternsAssign)
+			and parse the value in Variable.setValue() (for example, using Short.parseShort(value)). Nothing more
+			should be changed since the VariableFactory already iterates over all the relevant types and patterns
+			when parsing variable declarations or assignments.
+			----------------------------------------------------------------------------------------
+
+		2.	Which modifications/extensions would you have to make in your code in order to support a new feature,
+			your program currently does not support?
+			Which classes would you add to your code, which methods would you add to existing classes, and which
+			classes would you modify?
+			----------------------------------------------------------------------------------------
+			To add this feature, we can add a Regex for "For" loop in ConditionalRegex class and add a matcher in
+			ScopeFactory that can recognize that Regex.
+
+			----------------------------------------------------------------------------------------
+
+	6.3 Regular Expressions
+	===========================
+		1.	What were the two main regular expressions you used in your code.
+			----------------------------------------------------------------------------------------
+			It's hard to choose the most used Regex, but nonetheless we'll try:
+
+			(*) VariableRegex.VAR_DECL expression. It is as follows:
+
+			VAR_NAME = "[a-zA-Z]\\w*|_\\w+";
+			VAR_NAME_AND_VALUE = "(" + VAR_NAME + ")(?:\\s*=\\s*(?:%s|(" + VAR_NAME + ")))?";
+			VAR_DECL ="\\s*(final\\s+|)%s\\s+(" + VAR_NAME_AND_VALUE + "\\s*(?:,\\s*" + VAR_NAME_AND_VALUE +
+						"\\s*)*);\\s*";
+
+			VAR_NAME represents a variable name. Since a name that begins with an underscore must have at least one
+			more character, this part is separated using OR to either a name starting with an underscore that must
+			have at least one more character, or a name that does not start with an underscore with zero or more
+			characters. In the second case, digits are alsoprohibited for the first character since a name cannot
+			begin with a digit.
+
+			VAR_NAME_AND_VALUE represents a variable name with an assignment to either a constant value or to
+			another variable name. The variable name is captured, and unused groups are not captured
+			(starts with ?: ). The assignment is optional. The expression is not complete, and instead of the
+			constant value expression, "%s" is used and is later replaced with the constant value regular
+			expression using String.format(), depending on the variable's type.VAR_NAME_AND_VALUE is used when
+			parsing both variable declarations and variable assignments.
+
+			VAR_DECL represents a variable declaration line, which could contain initialized and uninitialized
+			declarations of multiple variables. The declaration captures a "final" modifier or empty string
+			depending on the variable's declaration, and a single variable declaration uses the VAR_NAME_AND_VALUE
+			regular expression. Multiple declarations are allowed and at least a single declaration is required.
+
+			(*) MethodRegex.METHOD_FULL
+
+			This regex recognizes the method declaretion. With that regex, we decide where a method scope is open,
+			and thus we know to build a new Scope object. Also, we use this regex to collect all the methods in the
+			file (so we can call them later). That's why this regex is significant.
