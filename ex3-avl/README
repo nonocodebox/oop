@@ -1,0 +1,94 @@
+See ex3.pdf
+
+File description:
+------------------
+1. AvlTree.java - an implementation of an AVL tree.
+2. README This file
+
+Design:
+-------
+
+Design issues:
+
+When performing add/delete/balance operations on the tree, it is necessary to update the node heights
+of affected nodes. To keep those operations at O(log n) complexity, the update is done only where necessary -
+in add/delete the update is done from the affected node upwards until the root (which is O(log n) max),
+and when balancing the update is done on specific nodes (which is O(1)).
+
+AvlTree.java is a nested class which contains:
+(*) ViolationInfo : which holds the violation node, and which rotation has to be preformed.
+(*) TreeNode: holds a cell�s parent, left and right cell, height and value.
+
+Relationships:
+
+AvlTree holds cells which are instances of TreeNode.
+When inserting a new node or deleting one it may cause a Violation,
+ViolationInfo hold the violation node and first and second:
+first - next node direction after the violationNode, staring from violationNode to the longest route in the tree.
+second - the next node direction after first, staring from violationNode  to the longest route in the tree.
+first and second is hold in order to know which rotation should be performed.
+After finding the violation node and the type of rotation according to the operation, the tree is balanced.
+
+Why I made these choices:
+
+1) I wanted to have a coherent code section that will make it clear what type of rotation should be preformed and what
+is the violation node, this is the reason I use enum (ViolationSituation) indicates the  type of rotation.
+This class includes the method checkCellViolation()
+Which is shared between the two operations: delete() and add().
+This method checks whether there is a violation and finds the type of rotation.
+2) In order to represent the nodes in the tree I wrote TreeNode.
+TreeNode olds a cell�s parent, left and right cell, height and value.
+
+Implementation  Issues:
+
+searchBalance(TreeNode node) - climbs up to the tree by iterating the parents,
+			       and balances the tree, if it finds a violation.
+
+checkCellViolation(TreeNode current) - Checks if a node is a violation node and if it is,
+                                       it sets the class members with the violation state (RL, RR, LR, LL).
+
+
+
+
+Answers to Questions:
+               17
+             /   \
+            /     \
+           /       \
+          9         19
+         /  \       /  \
+        /    \     18    20
+       /      \           \
+      4         13         21
+    /  \       /   \
+   1     7    11    15
+  / \   / \   / \   / \
+ 0   2 6   8 10 12 14 16
+
+
+1. AvlTree.java is a nested class which contains:
+  (*) ViolationInfo : which holds the violation node, and which rotation has to be preformed.
+  (*) TreeNode: holds a cell�s parent, left and right cell, height and value.
+
+2. Implementation of add():
+   add() first inserts the node just like a normal BST add. After adding, heights of relevant nodes
+   are updated using updateHeightsFromNode() and the the tree is balanced, if needed, using searchBalance().
+
+   Implementation of delete():
+   delete() looks for the node to delete and deletes it using regular BST delete algorithm. After deletion,
+   relevant nodes' heights are updated using updateHeightsFromNode() starting from the deleted node's parent,
+   and then the tree is balanced, if needed, using searchBalance().
+
+   Implementation of updateHeightsFromNode():
+   This method starts at a given node, and updates the heights of the node and its parents until reacing the root.
+
+   Implementation of searchBalance():
+   This method looks for a violation node starting from a given node upwards using ViolationInfo. If found,
+   the node is balanced using balance().
+
+   Implementation of balance():
+   Balances a violation node with information from a ViolationInfo, using standard AVL rotations.
+
+   Implementation of ViolationInfo.checkCellViolation():
+   This method checks if a node is a violation node, comparing heights if its two subtrees. If it is, the
+   violation state (rorations needed) and the node is set in the class' members.
