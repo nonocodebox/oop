@@ -1,0 +1,191 @@
+See ex2.pdf
+----------------
+Contained files:
+----------------
+
+Packege clids.ex2.filescript
+############################
+1) BadFileFormatException.java - An exception that notifies when a received file format is incorrect.
+2) BadNameException.java  - An exception that notifies when a name is incorrect.
+3) BadSectionNameException.java - An exception that notifies when a subsection name is incorrect.
+4) ErrorException.java - Type 2 error (error) exception.
+5) InvalidParameterException.java - An exception that notifies when an operation's parameter is incorrect.
+6) Manager.java  - Runs and executes all the program.
+7) MyFileScript.java - contains main method - runs manager and receives the programs arguments.
+8) Parser.java - Reads received file and creates sections.
+9) ProgramArgumentsException.java -  An exception that notifies when the main method receives incorrect
+arguments.
+10) WarningException.java - Notifies when a type 1 error (warning) occures.
+
+
+Packege clids.ex2.filescript.actions
+####################################
+1) Action.java - Action interface.
+2) ActionFactory.java - Creates action according to the read operation.
+3) BadActionNameException.java - An exception that notifies when an action operation name is incorrect.
+4) CopyAction.java - Copy action - copies a file from one place to another.
+5) PrintDataAction.java - Prints file information.
+6) PrintNameAction.java - Prints a file name.
+7) SetLastModifiedTime.java - Set last modified file date.
+8) SetPermissionAction.java - Abstract set permission action.
+9) SetWPermissionAction.java - Set file write permission.
+10) SetXPermissionAction.java - Set file execute permission.
+
+
+Packege clids.ex2.filescript.filters
+####################################
+1) AfterFilter.java - Filters all files last modified after (or at) a certain date.
+2) BadFilterNameException.java - An exception that notifies when a filter name is incorrect.
+3) BeforeFilter.java - Filters all files last modified before (or at) a certain date.
+4) BetweenFilter.java - Filters all files which have a size between two sizes.
+5) BooleanFilter.java - An abstract class that filters by boolean
+ (ExecutableFilter, HiddenFilter and WritableFilter are children).
+6) DateFilter.java - Filters files by last modified date.
+7) DefaultFilter.java - Doesn't filter.
+8) ExecutableFilter.java - Filters all files which are executable.
+9) FileNameFilter.java - Filters all files with a certain name.
+10) Filter.java - Filter abstract class. Implements java's FileFilter interface.
+11) FilterFactory.java - Creates filters according to a filter string.
+12) GreaterThanFilter.java - Filters all files which have a size greater than a certain size.
+13) HiddenFilter.java - Fliters all files which are hidden.
+14) NotFilter.java - A decorator filter which performs a NOT operation on another filter.
+15) PrefixFilter.java - Filters all files starting with a prefix.
+16) SizeFilter.java - An abstract filter class that filters by file size
+ (GreaterThanFilter and SmallerThanFilter are children).
+17) SmallerThanFilter.java - Filters all files which have a size smaller than a certain size.
+18) SufixFilter.java - Filters all files ending with a suffix.
+19) WritableFilter.java - Filters all files which are writable.
+
+
+Packege clids.ex2.filescript.orders
+###################################
+1) AbsolutePathOrder.java - Orders files by absolute path.
+2) BadOrderNameException.java - An exception that notifies when an order name is incorrect.
+3) CombinedOrder.java - A decorator order which orders files by a primary and secondary order.
+4) FileNameOrder.java - Orders files by name.
+5) LastModifiedOrder.java - Orders files by last modified date.
+6) LongOrder.java - An abstract order which orders files by a long value
+ (LastModifiedOrder and SizeOrder are children).
+7) Order.java - Order interface (extends Comparator<File>).
+8) OrderFactory.java - Creates orders according to an order string.
+9) SizeOrder.java - Orders files by size.
+10) StringOrder.java - An abstract order which orders files by a string value
+ (AbsolutePathOrder and FileNameOrder are children).
+
+
+Packege clids.ex2.filescript.sections
+#####################################
+1) Section.java - Holds a single command file section.
+
+
+Packege clids.ex2.filescript.toolbox
+#####################################
+1) ToolBox.java - Contains general use methods.
+
+
+Answers:
+1) I implemented the design according your suggestion offered in class.
+2) Errors:
+(*) When I wrote the copy action operation I used FileReader then I discovered that FileReader's aim is for
+textual files only. This is the reason i used FileInputStream.
+(*) At the begining I didnt think about the idea that files need to be searched recursively, we need to iterate
+over all the directores in the tree, Therefore I wrote RecursiveFiles().
+(*) At the begining I had a problem with notifying the user where the error/warning is therefore i wrote
+ActionSourceLine, which envelopes the action with line number.
+(*) One major problem was deciding when a parsing error occures, at the begining I thought to use flags,
+but then I figured that it will get too complicated and not understandable, this is the reason I used the state
+machine concept:
+I wrote ParserMode, that signals what next line we are waiting for.
+(*) DefaultFilter is a suggestion for a solution to a non filter situation, DefaultFilter brings all files.
+3) Abstracts and interfaces:
+Action: SetWPermissionAction, SetXPermissionAction and that explaines the fact that I used an abstract class.
+- Action is an interface because every action proformes different operation,
+- SetPermissionAction is an abstract class because there is a common implemintation to both of
+the two actions: there is no need to implement a method that is common to all, therefore I used an interface.
+- BooleanFilter - ExecutableFilter, HiddenFilter and WritableFilter is an abstract class because there is a
+common implemintation, it prevents code-repetition.
+- Filter: I used an abstract class because all filters has one thing in common: they are all
+filter files and not directories, this is the reson I impemented the filter by files in the abstract method.
+- DateFilter - AfterFilter and BeforeFilter both have a common implemintation, which prevents code-repetition,
+and this is the reason I used abstract.
+- Order: Order is an interface because it is a Comparator<File> interface, Order is an interface because
+every action proformes different operation, there is no need to implement a method that is common to all,
+therefore I used an interface.
+
+Design:
+
+Inheritance hierarchy:
+----------------------
+
+java.io.FileFilter
+	Filter
+		DefaultFilter
+		SizeFilter
+			GreaterThanFilter
+			SmallerThanFilter
+			BetweenFilter
+		BooleanFilter
+			ExecutableFilter
+			WritableFilter
+			HiddenFilter
+		DateFilter
+			BeforeFilter
+			AfterFilter
+		FileNameFilter
+		PrefixFilter
+		SuffixFilter
+		NotFilter
+
+Action
+	PrintNameAction
+	PrintDataAction
+	CopyAction
+	SetLastModifiedTime
+	SetPermissionAction
+		SetXPermissionAction
+		SetWPermissionAction
+
+java.util.Comparator<File>
+	Order
+		CombinedOrder
+		StringOrder
+			AbsolutePathOrder
+			FileNameOrder
+		LongOrder
+			LastModifiedOrder
+			SizeOrder
+
+java.lang.Exception
+	WarningException
+		BadNameException
+			BadFilterNameException
+			BadActionNameException
+			BadOrderNameException
+		InvalidParameterException
+	ErrorException
+		ProgramArgumentsException
+		BadSectionNameException
+		BadFileFormatException
+
+(design issues see Errors)
+(Design decisions is according to your suggestion)
+
+Exception design:
+-----------------
+Exceptions are divided into 2 main categories: WarningException (type 1 exceptions) and ErrorException (type 2
+exception). All of my own exceptions inherit one of these types, directly or indirectly. Type 1 exceptions are
+caught and treated as warnings, eventually displayed as "Warning in line X", and type 2 exceptions are caught
+in the main method and cause the program to print "ERROR" and exit. Type 3 errors (errors while performing
+actions) do not have special exceptions, as the normal Java exceptions are used (for example, IOException).
+These are caught and printed as "Action failed in line X".
+
+
+Implementation  Issues:
+
+1) CombinedOrder: To allow ordering files using the "abs" order when they are equal using another order, I have
+implemented the CombinedOrder order, which receives 2 orders (primary and secondary), and orders files based on
+the primary order. If they are equal - the secondary order is used. This is a decorator class since it uses 2
+existing orders.
+2) One major problem was deciding when a parsing error occures, at the begining I thought to use flags,
+but then I figured that it will get too complicated and not understandable, this is the reason I used the state
+machine concept: I wrote ParserMode, that signals what next line we are waiting for.
