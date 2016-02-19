@@ -1,0 +1,237 @@
+See ex1.pdf
+
+----------------
+Contained files:
+----------------
+1) MyHashSet.java - This file contains my suggestion for implementation for HashTable data structure.
+2) StringLinkedList.java - This file is an encapsulation for LinkedList with String parameter,
+   this was done in order to overcome the inability to declare an array of a generic type.
+3) MyAnalysis.java - (contains main method) Contains the requested tests and analysis in different
+   data structures: TreeSet, LinkedList and MyHashSet.
+4) Ex1Utils.java - A utilities class for ex1 in clids.
+5) README - this file.
+
+-------
+Design:
+-------
+design issues:
+1) I have encountered several issues, i thought the better way to handle such implementation is to keep
+   an array which will contain a string linked list in every cell, but after reading more about it i discovered
+   that it is not possible to to declare an array of a generic type. this is the reason i encapsulated
+   LinkedList using OOP concept.
+2) Another problem was when i was needed to implement the private rehashing method: at the beginning i was
+   certain that i should create a new MyHashSet to reserve all the old values and then flush the values back.
+   It caused problems while debugging then i came to realize that the order of the values is not important
+   because is is only temporary. this is the reason i decided to use a regular LinkedList which holds the
+   old values unordered, then flushes the values to the hash table (after being cleaned up).
+3) loadfactor should not be a class member, it is only being calculated twice.
+
+
+design decisions:
+HashSet:
+1)Adding method:
+When adding a new value to the table there are two types of adding:
+ -Adding a new value
+ -Adding old values when rehashing.
+This led me to use a helper adding method because it is pointless to re-check rehashing when re-entering
+the old values back.
+
+Analysis:
+In this class i i used two methods in order to prevent code repetition.
+1) findAddTime - evaluates the time that takes to each data structure to add values.
+2) containsTime - evaluates the time that takes to each data structure to preform contain().
+
+In general:
+There are three classes:
+1) MyHashSet.
+2) StringLinkedList.
+3) (main) MyAnalysis. The first and most important is MyHashSet class which is my offer to Hash table
+   implementation. the second, is StringLinkedList which helps to overcome the inability to declare an
+   array of a generic type. The third is analysis class which compares between three types of data structures.
+   It compares two operations: adding values and contains(). The MyHashSet uses StringLinkedList in order to
+   be able to build the hash table using LinkedList that holds strings - the actual hash table values.
+   The array is for an efficient insertion. Using OOP no additional methods. StringLinkedList extends
+   LinkedList class.
+
+---------------------
+Implementation Issues
+---------------------
+I would like to clarify the use of:
+ 1) public boolean add(String newValue)
+ 2) private boolean add(String newValue, boolean checkLimits)
+There are two methods: 1) calls 2), 2) is used as a helper method, It receives checkLimits which checks
+whether rehashing should be preformed. I wrote this private method in order to prevent rehashing check
+when there is no need to, When rehashing is called it adds the old values to the table after resizing.
+There is no need to double check the old values when calling to add each time because we already did it!
+
+
+---------------------
+Answers to Questions:
+---------------------
+Section 6:
+
+##########
+Complexity
+##########
+
+1) add() -
+(*) When capacity is much larger than the size, When the size is larger than the capacity the the complexity of
+add operation is O(n).
+add() includes the calls to contain() and rehashing(). The rest of the commands are O(1):
+Assuming each list contains a constant number of elements, - contains() complexity is O(1).
+contains() calls to LinkedList.contains(). The time complexity of LinkedList.contains() complexity is O(1).
+- rehashing(): iterates over the array of the hash table - O(n) and in each iteration it iterates on every
+element in the list, which under the assumption it takes O(1). Then, initializes the hash table which has
+n elements [O(n)] and finally adds the old values back to the hash table (without rehashing) which
+has n elements [O(n)].
+O(1) + O(n) + O(n) + O(n) = O(n). Therefore the complexity is O(n).
+
+(*) When the size is larger than the capacity the the complexity of add operation is O(n^2).
+add() includes the calls to contain() and rehashing() The rest of the commands are O(1):
+- contains(): contains calls to LinkedList.contains(). The time complexity of LinkedList.contains() complexity
+is O(n). This is because we assume that each list has n elements.
+- rehashing(): iterates over the array of the hash table - O(n) and in each iteration it iterates on every
+element in the list, which under the assumption it takes has n elements, therefore it takes O(n) = [O(n^2)].
+Then, initializes the hash table which has n elements [O(n)] and finally adds the old values back to the hash
+table (without rehashing) which has n elements [O(n)].
+O(n) + O(n^2) + O(n) + O(n) = O(n^2).
+Therefore the complexity is O(n^2).
+
+2) contains() -
+(*) When capacity is much larger than the size, assuming that each list contains a constant number of elements,
+the complexity of contains operation is O(1).
+contains() calls to LinkedList.contains() and hash(). The rest of the commands are O(1). The time complexity
+of LinkedList.contains() complexity is O(1). The call to hash takes O(1).
+Therefore O(1) + O(1) = O(1).
+
+(*) When the size is larger than the capacity the the complexity of add operation is O(n).
+contains() calls to LinkedList.contains() and hash(). The rest of the commands are O(1).
+The time complexity of LinkedList.contains() complexity is O(n). This is because we assume that each list
+has n elements. The call to hash takes O(1).
+Therefore O(1) + O(n) = O(n).
+
+3) delete() - delete calls to contains(), LinkedList.remove() and rehashing. The rest of the commands are O(1).
+(*) When capacity is much larger than the size, assuming that each list contains a constant number of elements,
+the complexity of remove operation is O(n) (see explication above).
+Under the assumption, the time complexity of LinkedList.remove() is O(1).
+Calculation: contains (O(1)) + LinkedList.remove (O(1)) + rehashing (O(n)) = O(n).
+(*) When the size is larger than the capacity the the complexity is O(n^2). (see explication above).
+Under the assumption, the time complexity of LinkedList.remove() is O(n) because each list has n elements.
+Calculation: contains (O(n)) + LinkedList.remove (O(n)) + rehashing (O(n^n)) = O(n^2).
+
+
+When the capacity is larger than the size, is means that we are more close to our target, our ideal: in every
+cell there is only "one" value. This ensures us that the complexity of list operations are O(1). Which makes
+hash set an efficient data structure. on the other hand, when the size is much larger, it means that each array
+cell contains a list that contains more than a constant number of values. Thus, it causes the hash set
+operations be less efficient. This is due to the time complexity of a regular linked list operations (O(n)).
+
+#########
+Analysis:
+#########
+
+
+(1)
+Adding data
+Data1 timing
+Tree: 65
+MyHashSet: 380583
+List: 209
+
+Data2 timing
+Tree: 81
+MyHashSet: 34280
+List: 1
+
+Comparing time between data1 and data2 timing
+Tree: 16
+MyHashSet: 346303
+List: 0
+
+(2)
+Containing timing (data1): -13170890158
+Tree: 0
+MyHashSet: 3
+List: 3
+
+Containing timing (data1): hi
+Tree: 0
+MyHashSet: 0
+List: 0
+
+Comparing time between -13170890158 and hi timing (data1)
+Tree: 0
+MyHashSet: 3
+List: 3
+
+(3)
+Containing timing (data2): 23
+Tree: 0
+MyHashSet: 0
+List: 0
+
+Containing timing (data2): hi
+Tree: 0
+MyHashSet: 0
+List: 0
+
+Comparing time between 23 and hi timing (data2)
+Tree: 0
+MyHashSet: 0
+List: 0
+
+
+1.  i. data1: in hash set all values in the same index: MyHashSet takes the longest time because all the
+values are inserted to one list as expected because it takes the time that LinkedList takes + time of indexing
+the values. TreeSet is a set and this is the reason is take less time because not all the value are being
+inserted as opposed to LinkedList which holds all the values in data1.
+data2: list takes less time because add is O(1), as expected. MyHashSet takes more time than i expected because
+the values are different by their indexes, so i expected it to take less less time due to the hash set's
+efficient insertion.
+    ii. The tree difference is expected to be more or less zero, because the insertion in tree is performed in
+the same way inserting different data. Here it is 16. it doesn't match my expectation. As expected the
+difference between MyHashSet is high, because the values are different by their indexes (see why in Answers to
+Questions last paragraph) again, list adding time is O(1), so the difference is expected to be zero.
+
+2.  i. From the results we can see that checking contains() for a word contained in the structure gives best
+performance on TreeSet (0 ms), then LinkedList (3 ms) and lastly MyHashSet (3 ms). This is expected since data1
+elements all go into the same "bucket" in MyHashSet, which makes contains() perform in O(n). TreeSet's
+contains() always performs in O(log n), and LinkedList's contains() in O(n). as expected the time took to
+MyHashSet and LinkedList is more or less similar since data1 elements all go into the same "bucket" in
+MyHashSet therefore MyHashSet is expected to behave like list. Although i expected it to take more time due to
+MyHashSet index handling.
+    ii. From the results we can see that checking contains() for a word not contained in the structure gives
+the same results for all the structures. This is not expected, since TreeSet always performs in O(log n), and
+LinkedList in O(n), and MyHashSet in O(1) or O(n), depending on the hash code - which are all different
+(O(1) < O(log n) < O(n)). 3. From the results we can see that with data2, when checking contains() for both
+contained and not-contained words, the performance is about the same (0 ms). This is not expected, because
+with data2, MyHashSet should be O(1), TreeSet should be O(log n) and LinkedList should be O(n). But since all
+results are 0, this might happen since the lookup is done quickly enough to not be able to measure it
+using Date.getTime().
+
+Section 7:
+
+##add: calls add(String newValue, boolean checkLimits).
+This helper function is only for the use of add().
+
+add(String newValue, boolean checkLimits)'s Algorithm:
+1. whether the value is in set (if not return).
+2. if so, finding the value's index by calling hash() method.
+3. adds the value to list according to the index.
+4. should rehash? (check loadFactor)
+5. if so, rehash (resize the array by increasing the capacity and insert old values back).
+
+This describes the helper function. the add() calls this private with the value true. (see above more details).
+Another helper function is rehashing - this method rehashes : Resizes the table and adds old values (insertion
+includes the use of re-calculating hash codes for each value).
+
+##delete:
+public boolean delete(String toDelete)'s Algorithm:
+1. whether the value is in set (if not return).
+2. decreases size by one.
+3. update loadFactor.
+4. should rehash? (check loadFactor)
+5. if so, rehash (resize the array by increasing the capacity and insert old values back). helper function is
+rehashing - this method rehashes : Resizes the table and adds old values (insertion includes the use of
+re-calculating hash codes for each value).
+Used for both operations: add() and delete().
